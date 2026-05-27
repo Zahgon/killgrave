@@ -1,16 +1,7 @@
 package http
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
 	"io/fs"
-	"os"
-	"path"
-	"path/filepath"
-	"strings"
-
-	"gopkg.in/yaml.v2"
 )
 
 // ImposterType allows to know the imposter type we're dealing with
@@ -46,16 +37,10 @@ type Imposter struct {
 
 // NextResponse returns the imposter's response.
 // If there are multiple responses, it will return them sequentially.
-func (i *Imposter) NextResponse() Response {
-	r := i.Response[i.resIdx]
-	i.resIdx = (i.resIdx + 1) % len(i.Response)
-	return r
-}
+func (i *Imposter) NextResponse() Response { _ = "STUB: not implemented"; return *new(Response) }
 
 // CalculateFilePath calculate file path based on basePath of imposter's directory
-func (i *Imposter) CalculateFilePath(filePath string) string {
-	return path.Join(i.BasePath, filePath)
-}
+func (i *Imposter) CalculateFilePath(filePath string) string { _ = "STUB: not implemented"; return "" }
 
 // Request represent the structure of real request
 type Request struct {
@@ -79,51 +64,14 @@ type Response struct {
 // response or an array of responses, while keeping backwards compatibility.
 type Responses []Response
 
-func (rr *Responses) MarshalJSON() ([]byte, error) {
-	if len(*rr) == 1 {
-		return json.Marshal((*rr)[0])
-	}
-	return json.Marshal(*rr)
-}
+func (rr *Responses) MarshalJSON() ([]byte, error) { _ = "STUB: not implemented"; return nil, nil }
 
-func (rr *Responses) UnmarshalJSON(data []byte) error {
-	if string(data) == "null" {
-		*rr = nil
-		return nil
-	}
+func (rr *Responses) UnmarshalJSON(data []byte) error { _ = "STUB: not implemented"; return nil }
 
-	if data[0] == '[' {
-		return json.Unmarshal(data, (*[]Response)(rr))
-	}
-
-	var r Response
-	if err := json.Unmarshal(data, &r); err != nil {
-		return err
-	}
-
-	*rr = Responses{r}
-	return nil
-}
-
-func (rr *Responses) MarshalYAML() (interface{}, error) {
-	if len(*rr) == 1 {
-		return (*rr)[0], nil
-	}
-	return *rr, nil
-}
+func (rr *Responses) MarshalYAML() (interface{}, error) { _ = "STUB: not implemented"; return nil, nil }
 
 func (rr *Responses) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var r Response
-	if err := unmarshal(&r); err == nil {
-		*rr = Responses{r}
-		return nil
-	}
-
-	var tmp []Response
-	if err := unmarshal(&tmp); err != nil {
-		return err
-	}
-	*rr = tmp
+	_ = "STUB: not implemented"
 	return nil
 }
 
@@ -133,79 +81,16 @@ type ImposterFs struct {
 }
 
 func NewImposterFS(path string) (ImposterFs, error) {
-	_, err := os.Stat(path)
-	if err != nil {
-		switch {
-		case os.IsNotExist(err):
-			return ImposterFs{}, fmt.Errorf("the directory '%s' does not exist", path)
-		case os.IsPermission(err):
-			return ImposterFs{}, fmt.Errorf("could not read the directory '%s': permission denied", path)
-		default:
-			return ImposterFs{}, fmt.Errorf("could not read the directory '%s': %w", path, err)
-		}
-	}
-
-	return ImposterFs{
-		path: path,
-		fs:   os.DirFS(path),
-	}, nil
+	_ = "STUB: not implemented"
+	return *new(ImposterFs), nil
 }
 
 func (ifs ImposterFs) FindImposters(impostersCh chan []Imposter) error {
-	err := fs.WalkDir(ifs.fs, ".", func(path string, info fs.DirEntry, err error) error {
-		if err != nil {
-			return fmt.Errorf("%w: error finding imposters", err)
-		}
-
-		var cfg ImposterConfig
-		filename := info.Name()
-		if !info.IsDir() {
-			switch {
-			case strings.HasSuffix(filename, jsonImposterExtension):
-				cfg = ImposterConfig{JSONImposter, path}
-			case strings.HasSuffix(filename, yamlImposterExtension), strings.HasSuffix(filename, ymlImposterExtension):
-				cfg = ImposterConfig{YAMLImposter, path}
-			default:
-				return nil
-			}
-			imposters, err := ifs.unmarshalImposters(cfg)
-			if err != nil {
-				return err
-			}
-			impostersCh <- imposters
-		}
-		return nil
-	})
-	close(impostersCh)
-	return err
+	_ = "STUB: not implemented"
+	return nil
 }
 
 func (ifs ImposterFs) unmarshalImposters(imposterConfig ImposterConfig) ([]Imposter, error) {
-	imposterFile, _ := ifs.fs.Open(imposterConfig.FilePath)
-	defer imposterFile.Close()
-
-	bytes, _ := io.ReadAll(imposterFile)
-
-	var parseError error
-	var imposters []Imposter
-
-	switch imposterConfig.Type {
-	case JSONImposter:
-		parseError = json.Unmarshal(bytes, &imposters)
-	case YAMLImposter:
-		parseError = yaml.Unmarshal(bytes, &imposters)
-	default:
-		parseError = fmt.Errorf("unsupported imposter type %v", imposterConfig.Type)
-	}
-
-	if parseError != nil {
-		return nil, fmt.Errorf("%w: error while unmarshalling imposter's file %s", parseError, imposterConfig.FilePath)
-	}
-
-	for i := range imposters {
-		imposters[i].BasePath = filepath.Dir(filepath.Join(ifs.path, imposterConfig.FilePath))
-		imposters[i].Path = imposterConfig.FilePath
-	}
-
-	return imposters, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
